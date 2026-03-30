@@ -81,7 +81,7 @@ voice-ai-agency-ops-hub/
     agency.md                      # Your agency identity
     clients/
       _template.md                 # Client file template
-      _example-client.md           # Fictional example
+      sunrise-dental.md           # Fictional example
     outreach/                      # Outreach lead tracking
     pipeline/                      # Deal pipeline tracking
     sops/                          # Standard operating procedures
