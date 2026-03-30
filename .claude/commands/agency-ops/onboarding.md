@@ -83,7 +83,7 @@ Capture their choice in `context/agency.md` under the Tracking Approach section.
 ## Stage 5: Wrap Up
 
 1. Verify `context/clients/_template.md` exists (should already be there from setup). If missing, note it but do not create -- it is a setup issue.
-2. Verify `context/clients/sunrise-dental.md` exists as the example client file.
+2. Verify `context/clients/_example-client-sunrise-dental.md` exists as the example client file.
 3. Show a final summary:
    - Files created or verified
    - List of available skills (reference the Skill Registry in CLAUDE.md)
