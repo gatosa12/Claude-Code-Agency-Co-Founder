@@ -7,13 +7,13 @@ start_date: "2026-02-10"
 meeting_cadence: biweekly
 last_updated: "2026-03-25"
 staleness_threshold_days: 14
+open_commitments_count: 2
+next_meeting_date: "2026-04-08"
 ---
 
 > **This is a fictional example client for reference.** It shows what a well-maintained client file looks like. Use `/agency-ops:new-client` to create your own.
 
 # Sunrise Dental
-
-> **This is a fictional example client for reference.** It shows what a well-maintained client file looks like after a few weeks of active work. Use it as a model when creating your own client files with `/agency-ops:new-client`.
 
 ## Project Scope
 
