@@ -1,4 +1,4 @@
-# Agency Ops Hub
+# Claude Code Agency Co-Founder
 
 A Claude Code-powered command center for voice AI agency operators. Built by Amplify Voice AI.
 
@@ -12,12 +12,12 @@ This is a guided conversation that asks about your niche, experience level, clie
 
 This project helps voice AI agency operators acquire their next client and deliver successfully. It provides:
 
-- **Personalized agency identity** -- your niche, services, pricing, communication style
-- **Client context management** -- structured files that Claude reads for every interaction
-- **Operations skills** -- slash commands for client briefings, meeting prep, follow-ups, outreach, pipeline tracking, and proposals
-- **Self-learning architecture** -- skills that get better as you use them, learning your preferences and patterns
-- **Delivery templates** -- voice agent design docs, system architecture guides, lead gen pipeline templates
-- **GSD development framework** -- use `/gsd:new-project` to plan and build voice AI systems for your clients
+- **Personalized agency identity** — your niche, services, pricing, communication style
+- **Client context management** — structured files that Claude reads for every interaction
+- **Operations skills** — slash commands for client briefings, meeting prep, follow-ups, outreach, pipeline tracking, and proposals
+- **Self-learning architecture** — skills that get better as you use them, learning your preferences and patterns
+- **Delivery templates** — voice agent design docs, system architecture guides, lead gen pipeline templates
+- **GSD development framework** — use `/gsd:new-project` to plan and build voice AI systems for your clients
 
 ## Available Skills
 
@@ -47,7 +47,7 @@ Decision framework for how Claude operates in this project:
 
 ## Self-Learning
 
-Every skill directory contains `learnings.md` (accumulated knowledge with 30-entry cap) and `references/` (templates, examples). Skills compound through use -- the more you use them, the better they get at understanding your preferences and patterns.
+Every skill directory contains `learnings.md` (accumulated knowledge with 30-entry cap) and `references/` (templates, examples). Skills compound through use — the more you use them, the better they get at understanding your preferences and patterns.
 
 ## Delivery Templates
 
@@ -65,12 +65,6 @@ Use `/gsd:new-project` to plan and build voice AI systems for your clients. GSD 
 - Project planning with research and requirements
 - Phased execution with automatic progress tracking
 - Verification that deliverables meet goals
-
-## Customization & Ideas
-
-This toolkit is yours to customize. As you use it, Claude will capture improvement ideas in `context/customization-backlog.md`. Review them during your weekly review or whenever you're ready to make changes.
-
-Think of this as a co-founder that learns your business -- the more you use it, the more personalized and valuable it becomes.
 
 ## Project Structure
 
@@ -126,9 +120,4 @@ voice-ai-agency-ops-hub/
     lead-gen/                     # Lead gen strategy guide
       lead-gen-strategy.md
       google-maps-scraping.md
-  dashboard/
-    index.html                     # Local web dashboard
-  docs/
-    skill-reference.md             # Skill design documentation
-    dashboard-customization.md     # Dashboard customization guide
 ```
