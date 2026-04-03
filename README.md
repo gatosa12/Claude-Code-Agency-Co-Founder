@@ -16,13 +16,13 @@ Built by [Amplify Voice AI](https://skool.com/amplify-voice-ai) for the communit
 
 1. **Clone this repo:**
    ```bash
-   git clone https://github.com/AlejoPijuan/voice-ai-agency-ops-hub.git
-   cd voice-ai-agency-ops-hub
+   git clone https://github.com/alejopijuan/Claude-Code-Agency-Co-Founder.git
+   cd Claude-Code-Agency-Co-Founder
    ```
    Or download as ZIP from the green "Code" button above.
 
 2. **Open in Cursor:**
-   Open the `voice-ai-agency-ops-hub` folder in Cursor.
+   Open the `Claude-Code-Agency-Co-Founder` folder in Cursor.
 
 3. **Run the onboarding wizard:**
    In Cursor's Claude Code panel, type:

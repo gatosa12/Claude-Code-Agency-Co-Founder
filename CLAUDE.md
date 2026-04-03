@@ -69,7 +69,7 @@ Use `/gsd:new-project` to plan and build voice AI systems for your clients. GSD 
 ## Project Structure
 
 ```
-voice-ai-agency-ops-hub/
+Claude-Code-Agency-Co-Founder/
   CLAUDE.md                        # This file
   README.md                        # Quick start guide
   .claude/
