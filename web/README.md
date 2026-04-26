@@ -22,6 +22,10 @@ The app boots without an API key — every tool returns a placeholder fixture so
 
 Get a key at https://console.anthropic.com/. Cost runs ~$0.01–0.05 per generation.
 
+### Real thumbnail images (optional)
+
+Add `OPENAI_API_KEY=...` to enable real preview-image rendering for the Thumbnail tool. Without it, the tool still returns concepts + ready-to-paste image-gen prompts; with it, it renders actual previews you can download. ~$0.50 per generation (3 images).
+
 ## What's inside
 
 | Route | Tool |

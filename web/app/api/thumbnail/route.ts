@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateJSON } from "@/lib/ai";
+import { generateImage, imageGenAvailable } from "@/lib/images";
 import { THUMB_SYSTEM, thumbUser } from "@/lib/prompts";
+
+export const maxDuration = 60;
 
 type Concept = {
   name: string;
@@ -10,6 +13,8 @@ type Concept = {
   textOverlay: string;
   colorPalette: string[];
   imagePrompt: string;
+  imageUrl?: string;
+  imageError?: string;
 };
 
 const MOCK = {
@@ -52,7 +57,7 @@ const MOCK = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, niche = "" } = await req.json();
+    const { title, niche = "", renderImages = false } = await req.json();
     if (!title?.trim()) {
       return NextResponse.json(
         { ok: false, error: "title is required" },
@@ -65,7 +70,40 @@ export async function POST(req: NextRequest) {
       maxTokens: 2500,
       mock: MOCK,
     });
-    return NextResponse.json({ ok: true, data });
+
+    const wantImages = renderImages && imageGenAvailable();
+    if (wantImages) {
+      const enriched = await Promise.all(
+        data.concepts.map(async (c) => {
+          try {
+            const img = await generateImage({
+              prompt: `${c.imagePrompt}. Bold uppercase text overlay: "${c.textOverlay}". YouTube thumbnail, 16:9 aspect ratio.`,
+              size: "1792x1024",
+            });
+            return { ...c, imageUrl: img?.url, imageError: undefined };
+          } catch (err) {
+            return {
+              ...c,
+              imageError: err instanceof Error ? err.message : "Image gen failed",
+            };
+          }
+        })
+      );
+      return NextResponse.json({
+        ok: true,
+        data: { concepts: enriched },
+        meta: { imagesRendered: true },
+      });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      data,
+      meta: {
+        imagesRendered: false,
+        imagesAvailable: imageGenAvailable(),
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : String(err) },
