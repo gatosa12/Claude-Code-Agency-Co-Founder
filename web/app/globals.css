@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 10 10 12;
+  --fg: 245 245 247;
+  --muted: 161 161 170;
+  --border: 39 39 42;
+  --card: 18 18 22;
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-feature-settings: "cv11", "ss01";
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border));
+  }
+}
+
+@layer utilities {
+  .text-muted {
+    color: rgb(var(--muted));
+  }
+  .bg-card {
+    background: rgb(var(--card));
+  }
+  .bg-app {
+    background: rgb(var(--bg));
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .gradient-bg {
+    background: radial-gradient(
+        circle at 20% 0%,
+        rgba(239, 68, 68, 0.15) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 100%,
+        rgba(234, 179, 8, 0.12) 0%,
+        transparent 50%
+      );
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(var(--border));
+    border-radius: 4px;
+  }
+}
+
+::selection {
+  background: rgba(239, 68, 68, 0.3);
+}
