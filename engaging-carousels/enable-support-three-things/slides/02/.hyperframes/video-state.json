@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "historyId": "3c913882-dfa7-4aa9-9194-9315ee143add",
+  "currentRevision": "57ab6247-03af-4641-91ab-def3d29a8427",
+  "pendingChanges": false,
+  "files": {
+    "assets/fonts/Arimo-700.woff2": {
+      "hash": "181215e08de9ce411e8c9e628eea6ea8bfa45de2a955ee57fc970dd8a080a3f6",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/18/181215e08de9ce411e8c9e628eea6ea8bfa45de2a955ee57fc970dd8a080a3f6"
+    },
+    "assets/fonts/BodoniModa-700.woff2": {
+      "hash": "595d28347ea02f9adccab277f49a122f04212fd220e972ce0c80fe933c915541",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/59/595d28347ea02f9adccab277f49a122f04212fd220e972ce0c80fe933c915541"
+    },
+    "assets/fonts/Inter-600.woff2": {
+      "hash": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/f9/f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a"
+    },
+    "assets/fonts/Inter-700.woff2": {
+      "hash": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/6f/6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491"
+    },
+    "assets/fonts/Inter-900.woff2": {
+      "hash": "08a195a0cb54f0aa04e00d7a57f175d8cad0923b62f99268d7279b4e982cb3e8",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/08/08a195a0cb54f0aa04e00d7a57f175d8cad0923b62f99268d7279b4e982cb3e8"
+    },
+    "assets/fonts/JetBrainsMono-400.woff2": {
+      "hash": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/14/14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb"
+    },
+    "assets/fonts/PlayfairDisplay-Italic-Var-latin.woff2": {
+      "hash": "89f75febfd1be53d2b7186e4a5fe27716e4c2d7814400bb108de6fa5c01e5610",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/89/89f75febfd1be53d2b7186e4a5fe27716e4c2d7814400bb108de6fa5c01e5610"
+    },
+    "assets/fonts/PlayfairDisplay-Italic-Var-latinext.woff2": {
+      "hash": "7451b34dd6608ff47f15b53dc5722a4259e65e1bdc2c95c7c2e426df353a4712",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/74/7451b34dd6608ff47f15b53dc5722a4259e65e1bdc2c95c7c2e426df353a4712"
+    },
+    "assets/tokens.css": {
+      "hash": "fc0259c1c504666f889f0feb3dd3e9deac53965ef04266f4400de9577cb81614",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/fc/fc0259c1c504666f889f0feb3dd3e9deac53965ef04266f4400de9577cb81614"
+    },
+    "assets/vendor/gsap.min.js": {
+      "hash": "c3a03a345e45bc954cd48c43f11572891f5dca7a5d99348d5bc14753a728618c",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/c3/c3a03a345e45bc954cd48c43f11572891f5dca7a5d99348d5bc14753a728618c"
+    },
+    "build.py": {
+      "hash": "bd2aa61b2052abd6d2eea9868e51d1640a40e947b94fae5f3aa585de8c5ed634",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/bd/bd2aa61b2052abd6d2eea9868e51d1640a40e947b94fae5f3aa585de8c5ed634"
+    },
+    "cues.json": {
+      "hash": "50a1d583921b82c97a86506279110cefae8f716467adf8725bb66c2e49bae315",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/50/50a1d583921b82c97a86506279110cefae8f716467adf8725bb66c2e49bae315"
+    },
+    "index.html": {
+      "hash": "50fd107d09feffe2e335864196f375f32ed0a756bfd3ba28e2aa4a61771cf40b",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/50/50fd107d09feffe2e335864196f375f32ed0a756bfd3ba28e2aa4a61771cf40b"
+    },
+    "media/use/tail02.jpg": {
+      "hash": "08792d34c6228fb1c77721e541c063d35835409c05629b98ea723b63794192f7",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/08/08792d34c6228fb1c77721e541c063d35835409c05629b98ea723b63794192f7"
+    },
+    "media/clips/s02_mono.mp4": {
+      "hash": "12a0ef4934e6fb53da33bd7ba65b35b891c1c7a04c31d929e68501db7ad786fc",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/12/12a0ef4934e6fb53da33bd7ba65b35b891c1c7a04c31d929e68501db7ad786fc"
+    },
+    "media/clips/s02_natural.mp4": {
+      "hash": "b79c4c75147b4d3352a0601a583260aacfc7b03490c733c1f9923dddc1453b2a",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/b7/b79c4c75147b4d3352a0601a583260aacfc7b03490c733c1f9923dddc1453b2a"
+    },
+    "media/clips/s02_teal.mp4": {
+      "hash": "f733515aa8e1b8ae75f9917271ee1ac8ef0ad45a5bf441fafdc4d4c2333cce2b",
+      "content": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/f7/f733515aa8e1b8ae75f9917271ee1ac8ef0ad45a5bf441fafdc4d4c2333cce2b"
+    }
+  },
+  "revisions": {
+    "57ab6247-03af-4641-91ab-def3d29a8427": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792797663527,
+      "endedAt": 1792797663537,
+      "files": {
+        "cues.json": {
+          "before": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/2e/2eecade952805c715d9b4768f94b547fd8bd96fe2d89658d9b770cdc667c3c95",
+          "after": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/50/50a1d583921b82c97a86506279110cefae8f716467adf8725bb66c2e49bae315"
+        },
+        "index.html": {
+          "before": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/83/83a94b4a2f70b3b3e3e3109ba9e4fee3497875384f18d3585238d6d247da9c91",
+          "after": "/root/.cache/hyperframes/history/3c913882-dfa7-4aa9-9194-9315ee143add/blobs/50/50fd107d09feffe2e335864196f375f32ed0a756bfd3ba28e2aa4a61771cf40b"
+        }
+      }
+    }
+  },
+  "checks": {
+    "latest": null,
+    "revisions": {},
+    "unversioned": []
+  },
+  "snapshots": {
+    "latest": null,
+    "revisions": {},
+    "unversioned": []
+  },
+  "renders": {
+    "latest": {
+      "id": "3b625ba5-98e0-4983-8568-c208a0a72b8f",
+      "completedAt": 1792797697763,
+      "output": "/home/user/Claude-Code-Agency-Co-Founder/engaging-carousels/enable-support-three-things/out/.02_silent.mp4",
+      "status": "completed",
+      "revision": "57ab6247-03af-4641-91ab-def3d29a8427"
+    },
+    "retainedRevisions": [
+      "57ab6247-03af-4641-91ab-def3d29a8427"
+    ]
+  },
+  "pendingArtifactCleanup": []
+}
