@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# The skill's private Python (made by setup.sh): scripts/py <script.py> [args...]
+EC_HOME="${EC_HOME:-$HOME/.engaging-carousel}"
+PY="$EC_HOME/venv/bin/python"
+if [ ! -x "$PY" ]; then
+  echo "The engaging carousel isn't set up on this computer yet. Run: bash $(cd "$(dirname "$0")" && pwd)/setup.sh" >&2
+  exit 1
+fi
+exec "$PY" "$@"
