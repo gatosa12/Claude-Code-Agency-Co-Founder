@@ -1,0 +1,80 @@
+{
+ "title": "Three things that matter in good support",
+ "prompt": "Let's use this skill: show me what you can do. (five interview clips of an Enable & Support manager)",
+ "voice": "her own voice (interview audio), not Kokoro",
+ "speed": 1.0,
+ "slide_dur": 10.0,
+ "lead": 0.1,
+ "gap": 0.22,
+ "sfx_kit": "open",
+ "sfx_profile": "clicks",
+ "music": {
+  "file": "",
+  "source": "none, by choice: her voice and the photo clicks only",
+  "below_voice_lu": 5.0,
+  "windows": {}
+ },
+ "source_voice": {
+  "01": [
+   "v_three_things",
+   0.0,
+   7.6
+  ],
+  "02": [
+   "v_three_things",
+   7.9,
+   14.1
+  ],
+  "03": [
+   "v_three_things",
+   15.35,
+   21.3
+  ],
+  "04": [
+   "v_three_things",
+   22.4,
+   30.2
+  ],
+  "05": [
+   "v_leaflet",
+   12.55,
+   19.0
+  ]
+ },
+ "transcript_key": {
+  "v_three_things": "2",
+  "v_leaflet": "5"
+ },
+ "slides": [
+  {
+   "id": "01",
+   "beat": "hook",
+   "say": "Can you give me three things that matter in good support? Gosh, I'm sure there's loads more than three."
+  },
+  {
+   "id": "02",
+   "beat": "one",
+   "say": "Things that spring to mind would be treating people with kindness and with respect"
+  },
+  {
+   "id": "03",
+   "beat": "two",
+   "say": "Listening to people properly, but properly listening and understanding what they want and what they need."
+  },
+  {
+   "id": "04",
+   "beat": "three",
+   "say": "and always promoting independence and choice. There are three that kind of come immediately to mind."
+  },
+  {
+   "id": "05",
+   "beat": "payoff + CTA",
+   "say": "If you're not sure what we do, give us a ring, ask us, we'd be really happy to answer any questions you might have."
+  }
+ ],
+ "facts": {
+  "speaker": "Enable & Support team member in uniform (name not confirmed; the interviewer may call her Grace in a false-start clip)",
+  "words": "every word is hers (and the interviewer's question on slide 01), cut from the interview clips without rewording",
+  "company": "Enable & Support: the logo on her uniform; services and phone number from the leaflet she holds"
+ }
+}

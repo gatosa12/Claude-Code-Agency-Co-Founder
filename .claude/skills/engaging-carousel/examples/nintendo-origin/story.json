@@ -1,0 +1,63 @@
+{
+  "title": "Nintendo didn't start with games",
+  "prompt": "/engaging-carousel the origin story of Nintendo",
+  "voice": "am_michael",
+  "speed": 1.0,
+  "slide_dur": 10.0,
+  "lead": 0.1,
+  "gap": 0.22,
+  "sfx_kit": "open",
+  "music": {
+    "file": "audio/music.wav",
+    "source": "the creator's own track (not included: bring a track you own the rights to)",
+    "below_voice_lu": 5.0,
+    "windows": {
+      "01": 42.46,
+      "02": 29.5,
+      "03": 2.0,
+      "04": 12.0,
+      "05": 20.0
+    }
+  },
+  "slides": [
+    {
+      "id": "01",
+      "beat": "hook",
+      "say": "Nintendo is one hundred and thirty seven years old. For most of that time, it never made a video game."
+    },
+    {
+      "id": "02",
+      "beat": "problem",
+      "say": "It began in eighteen eighty-nine in Kyoto. Fusajiro Yamauchi made hanafuda, Japanese playing cards."
+    },
+    {
+      "id": "03",
+      "beat": "turn",
+      "say": "In the sixties, Hiroshi Yamauchi tried everything. A taxi company. Instant rice. All failed. Then came toys."
+    },
+    {
+      "id": "04",
+      "beat": "how",
+      "say": "Engineer Gunpei Yokoi built the Ultra Hand toy. In nineteen eighty, his Game and Watch put games in your pocket."
+    },
+    {
+      "id": "05",
+      "beat": "payoff + CTA",
+      "say": "A year later, Donkey Kong gave us Mario. And Nintendo still makes playing cards. Follow for more brand stories."
+    }
+  ],
+  "sfx_profile": "clicks",
+  "facts": {
+    "founded": "Nintendo founded 23 Sep 1889 in Kyoto by Fusajiro Yamauchi to make hanafuda (en.wikipedia.org/wiki/History_of_Nintendo) — 137 years old on 2026-10-23",
+    "no_games": "first video game products 1975-77 (EVR Race, Color TV-Game): 1889-1977 = 88 of 137 years",
+    "ventures": "Daiya Taxi 1960; food company with instant rice; \"All of Nintendo's other business ventures eventually failed\" (History of Nintendo). Love hotels left out: disputed (no evidence in 1962 securities reports)",
+    "ultra_hand": "Ultra Hand 1966, built by Gunpei Yokoi (History of Nintendo; en.wikipedia.org/wiki/Gunpei_Yokoi)",
+    "game_watch": "Game & Watch: Ball, 1980 (History of Nintendo)",
+    "donkey_kong": "Donkey Kong, arcades 1981, origin of Mario (History of Nintendo)",
+    "cards_today": "nintendo.com/jp/others/hanafuda_kabufuda lists Mario hanafuda, Daitouryou, Fukutengu, Miyako no Hana (checked 2026-10-23)"
+  },
+  "pronounce": {
+    "Yokoi": "Yoh-koy",
+    "Yamauchi": "Yahmah-oochee"
+  }
+}

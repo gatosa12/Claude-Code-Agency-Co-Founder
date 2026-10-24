@@ -4,3 +4,16 @@ node_modules/
 .env.*
 *.log
 __pycache__/
+
+# engaging carousels: keep the recipe (story.json, prep.py, slides/*/build.py), never the recordings or renders
+engaging-carousels/*/media/
+engaging-carousels/*/audio/
+engaging-carousels/*/data/
+engaging-carousels/*/out/
+engaging-carousels/*/preview.html
+engaging-carousels/*/timer.json
+engaging-carousels/*/slides/*/assets/
+engaging-carousels/*/slides/*/media/
+engaging-carousels/*/slides/*/index.html
+engaging-carousels/*/slides/*/cues.json
+engaging-carousels/*/slides/*/.hyperframes/

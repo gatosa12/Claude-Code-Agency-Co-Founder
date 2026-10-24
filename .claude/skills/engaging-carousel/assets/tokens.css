@@ -1,0 +1,119 @@
+/* ==========================================================================
+   ENGAGING CAROUSEL — tokens (the Editor V1 look, re-set for a 1080x1350 4:5 slide)
+   Editor V1 was measured off three Metro Media House founder-story edits (16:9). The colours,
+   type tiers, frame counts and finish are kept; the sizes are re-solved for a phone-width
+   4:5 frame that people read at arm's length, with the text inside the 3:4 grid crop
+   (>= 86px from the sides) and clear of Instagram's "1/5" counter (top right) and sound
+   icon (bottom right).
+   Copy assets/ into the carousel (build_kit.py does), never reference the skill folder.
+   ========================================================================== */
+
+@font-face { font-family: "EV1 Sans"; src: url("fonts/Inter-600.woff2") format("woff2"); font-weight: 600; font-display: block; }
+@font-face { font-family: "EV1 Sans"; src: url("fonts/Inter-700.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "EV1 Sans"; src: url("fonts/Inter-900.woff2") format("woff2"); font-weight: 900; font-display: block; }
+@font-face { font-family: "EV1 Serif"; src: url("fonts/PlayfairDisplay-Italic-Var-latin.woff2") format("woff2"); font-style: italic; font-weight: 400 900; font-display: block; }
+@font-face { font-family: "EV1 Serif"; src: url("fonts/PlayfairDisplay-Italic-Var-latinext.woff2") format("woff2"); font-style: italic; font-weight: 400 900; font-display: block; unicode-range: U+0100-024F, U+1E00-1EFF; }
+@font-face { font-family: "EV1 Grotesk"; src: url("fonts/Arimo-700.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "EV1 Didone"; src: url("fonts/BodoniModa-700.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "EV1 Mono"; src: url("fonts/JetBrainsMono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+
+:root {
+  /* ---- colour (Editor V1, measured) ------------------------------------ */
+  --ev1-white:   #FFFFFF;
+  --ev1-black:   #060607;
+  --ev1-paper:   #F1F0EC;
+  --ev1-paper-edge: #B9B8B4;
+  --ev1-ink:     #121214;
+  --ev1-red:     #F2030A;
+  --ev1-marker:  #FFE04A;
+  --ev1-teal:    #0E5560;
+  --ev1-amber:   #D9822B;
+  --ev1-chrome: linear-gradient(180deg, #FBFDFF 0%, #DCE6EF 38%, #8EA6BC 52%, #4F6479 62%, #C9D6E2 80%, #F5F8FB 100%);
+
+  /* ---- type ------------------------------------------------------------- */
+  --ev1-sans:   "EV1 Sans", system-ui, sans-serif;
+  --ev1-serif:  "EV1 Serif", Georgia, serif;
+  --ev1-didone: "EV1 Didone", "Didot", serif;
+  --ev1-mono:   "EV1 Mono", ui-monospace, monospace;
+  --ev1-grotesk: "EV1 Grotesk", "Helvetica Neue", Arial, sans-serif;
+
+  /* Editor V1's 62px caption sits on a 1920-wide frame. A carousel is 1080 wide on the same
+     phone, so the caption is set a little LARGER relative to the frame (58/1080 vs 62/1920):
+     people watch carousels muted first, the caption is the hook. */
+  --ev1-cap-size:    58px;
+  --ev1-cap-y:       50%;
+  --ev1-cap-gap:     0.36em;
+  --ev1-key-size:    124px;
+  --ev1-title-size:  118px;
+  --ev1-shock-size:  168px;
+  --ev1-mega-size:   340px;
+  --ev1-tag-size:    28px;
+
+  /* ---- motion (frames at 30fps) ----------------------------------------- */
+  --ev1-f:            0.0333s;
+  --ev1-tile-frames:  10;
+  --ev1-pop-step:     0.08s;
+  --ev1-invert-frames: 2;
+  --ev1-glitch-frames: 4;
+  --ev1-focus-frames: 12;
+  --ev1-strobe-step:  0.08s;
+  --ev1-blur-in:      0.2s;
+  --ev1-push:         1.06;
+
+  /* ---- finish ----------------------------------------------------------- */
+  --ev1-grid-line: rgba(255,255,255,0.30);
+  --ev1-vignette-edge: 0.70;
+  --ev1-cap-shadow: 0 0 2px rgba(0,0,0,.40), 0 2px 10px rgba(0,0,0,.60), 0 0 26px rgba(0,0,0,.40);
+  --ev1-cap-bloom:  0 0 8px rgba(255,255,255,.22);
+
+  /* ---- carousel chrome (new: a slide is swiped, not played) ------------- */
+  --ec-safe-x: 86px;          /* 3:4 profile-grid crop trims ~34px per side; keep text 86px in */
+  --ec-ig-top: 120px;         /* Instagram's "1/5" pill sits top right */
+  --ec-ig-bottom: 120px;      /* the sound / tag icons sit bottom left and right */
+}
+
+/* ---- frame ------------------------------------------------------------ */
+.ev1-frame { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ev1-black); container-type: size; }
+.ev1-layer { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; overflow: hidden; }
+.ev1-fill  { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; object-fit: cover; display: block; }
+.ev1-black { background: var(--ev1-black); }
+.ev1-paper { background: radial-gradient(ellipse 80% 72% at 50% 50%, var(--ev1-paper) 0%, var(--ev1-paper) 45%, var(--ev1-paper-edge) 100%); }
+
+/* ---- captions: small white words, one at a time, in fixed slots ---------- */
+.ev1-cap { position: absolute; left: var(--ec-safe-x); width: calc(1080px - 2 * var(--ec-safe-x)); top: calc(var(--ev1-cap-y) - 0.6 * var(--ev1-cap-size)); display: flex; flex-wrap: wrap; justify-content: center; column-gap: var(--ev1-cap-gap); row-gap: 0.05em; font: 600 var(--ev1-cap-size)/1.2 var(--ev1-sans); color: var(--ev1-white); letter-spacing: -0.01em; text-shadow: var(--ev1-cap-shadow), var(--ev1-cap-bloom); text-align: center; }
+.ev1-cap.on-paper { color: var(--ev1-ink); text-shadow: none; }
+.ev1-cap .w { display: inline-block; opacity: 0; white-space: nowrap; }
+
+/* ---- the three display tiers --------------------------------------------- */
+.ev1-key   { font: 700 var(--ev1-key-size)/0.95 var(--ev1-grotesk); color: var(--ev1-white); letter-spacing: -0.035em; text-shadow: 0 6px 40px rgba(0,0,0,.45); white-space: nowrap; }
+.ev1-title { font: italic 700 var(--ev1-title-size)/1 var(--ev1-serif); letter-spacing: -0.01em; white-space: nowrap; background: var(--ev1-chrome); -webkit-background-clip: text; background-clip: text; color: transparent; padding: 0 0.08em; }
+.ev1-title-wrap { filter: drop-shadow(0 4px 2px rgba(0,0,0,.55)) drop-shadow(0 0 30px rgba(0,0,0,.35)); }
+.ev1-shock { font: 700 var(--ev1-shock-size)/0.9 var(--ev1-didone); color: var(--ev1-red); text-transform: uppercase; letter-spacing: -0.01em; white-space: nowrap; }
+.ev1-mega  { font: 900 var(--ev1-mega-size)/0.8 var(--ev1-sans); color: var(--ev1-red); text-transform: uppercase; letter-spacing: -0.045em; white-space: nowrap; }
+.ev1-tag   { font: 700 var(--ev1-tag-size)/1 var(--ev1-sans); color: var(--ev1-white); text-shadow: var(--ev1-cap-shadow); }
+
+/* ---- finish overlays ----------------------------------------------------- */
+.ev1-grid { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent calc(33.333% - 1px), var(--ev1-grid-line) calc(33.333% - 1px), var(--ev1-grid-line) calc(33.333% + 1px), transparent calc(33.333% + 1px)),
+    linear-gradient(90deg, transparent calc(66.667% - 1px), var(--ev1-grid-line) calc(66.667% - 1px), var(--ev1-grid-line) calc(66.667% + 1px), transparent calc(66.667% + 1px)),
+    linear-gradient(180deg, transparent calc(33.333% - 1px), var(--ev1-grid-line) calc(33.333% - 1px), var(--ev1-grid-line) calc(33.333% + 1px), transparent calc(33.333% + 1px)),
+    linear-gradient(180deg, transparent calc(66.667% - 1px), var(--ev1-grid-line) calc(66.667% - 1px), var(--ev1-grid-line) calc(66.667% + 1px), transparent calc(66.667% + 1px)); }
+.ev1-vignette { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; pointer-events: none; background: radial-gradient(ellipse 78% 70% at 50% 50%, rgba(0,0,0,0) 52%, rgba(0,0,0,.46) 100%); }
+
+/* ---- rebuilt UI: terminal ------------------------------------------------ */
+.ev1-term { position: absolute; font: 400 30px/1.5 var(--ev1-mono); color: #E8EAED; white-space: pre; }
+.ev1-term .dim { color: #7C8591; } .ev1-term .key { color: #9CC7FF; } .ev1-term .str { color: #B5E3A1; } .ev1-term .err { color: #FF6B6B; }
+.ev1-term.wrap { white-space: pre-wrap; }
+.ev1-cursor { display: inline-block; width: 0.6em; height: 1.05em; vertical-align: -0.15em; background: var(--ev1-white); }
+.ev1-mark { position: absolute; background: var(--ev1-marker); mix-blend-mode: multiply; transform-origin: 0 50%; }
+.ev1-mark.on-dark { mix-blend-mode: screen; background: rgba(255, 210, 60, .38); }
+
+/* ---- carousel chrome ----------------------------------------------------- */
+.ec-swipe { position: absolute; left: 0; width: 1080px; bottom: 150px; display: flex; justify-content: center; align-items: center; gap: 18px;
+  font: 700 30px/1 var(--ev1-sans); letter-spacing: 0.32em; text-transform: uppercase; color: var(--ev1-white); text-shadow: var(--ev1-cap-shadow); }
+.ec-swipe .bar { width: 120px; height: 3px; background: var(--ev1-white); box-shadow: 0 2px 10px rgba(0,0,0,.5); transform-origin: 0 50%; }
+.ec-swipe .chev { width: 22px; height: 22px; border-top: 4px solid var(--ev1-white); border-right: 4px solid var(--ev1-white); transform: rotate(45deg); margin-left: -14px; }
+.ec-sound { position: absolute; left: var(--ec-safe-x); top: 96px; display: flex; align-items: center; gap: 14px; padding: 12px 20px 12px 16px; border-radius: 999px;
+  background: rgba(6,6,7,.55); font: 700 24px/1 var(--ev1-sans); letter-spacing: 0.22em; text-transform: uppercase; color: var(--ev1-white); }
+.ec-count { font: 700 var(--ev1-shock-size)/0.9 var(--ev1-didone); color: var(--ev1-red); font-variant-numeric: tabular-nums; white-space: nowrap; }
