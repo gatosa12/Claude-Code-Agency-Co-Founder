@@ -1,0 +1,17 @@
+{
+  "name": "editor-v1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editor V1: AI-powered auto-editor that analyses raw footage frame by frame and plans sound effects, camera moves, B-roll, colour grading and animated captions.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --watch --env-file-if-exists=.env server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "multer": "2.0.2"
+  }
+}

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor V1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 4l22 12L6 28z' fill='%2300f2ff'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <header class="topbar glass">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" class="brand-mark" aria-hidden="true"><path d="M6 4l22 12L6 28z"/><path d="M2 9h3M2 16h5M2 23h3" /></svg>
+      <span class="brand-name">EDITOR<b>V1</b></span>
+      <span class="brand-sub">autonomous post-production</span>
+    </div>
+    <input id="projectName" class="project-name" placeholder="No project loaded" disabled aria-label="Project name">
+    <div class="job" id="job" hidden>
+      <div class="job-stage" id="jobStage">idle</div>
+      <div class="job-bar"><i id="jobBar"></i></div>
+      <div class="job-msg" id="jobMsg"></div>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="statusPill">offline</span>
+      <button class="btn auto" id="btnAuto" disabled title="Analyse every frame and plan the edit">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Auto-Edit
+      </button>
+      <button class="btn ghost" id="btnPreviewRender" disabled title="Fast low-res render">Preview render</button>
+      <button class="btn neon" id="btnRender" disabled>Render final</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- LEFT: media + engine -->
+    <aside class="col left">
+      <section class="panel glass">
+        <h2><span class="dot cyan"></span>Media bay</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="fileInput" accept="video/*" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>
+          <span><b>Drop raw footage</b><br>or click to upload</span>
+          <div class="upload-bar" id="uploadBar" hidden><i></i></div>
+        </label>
+        <ul class="projects" id="projects"></ul>
+      </section>
+
+      <section class="panel glass engine" id="engine">
+        <h2><span class="dot magenta"></span>Autonomous engine</h2>
+        <div class="field">
+          <label>Intensity</label>
+          <div class="seg" id="intensity">
+            <button data-v="subtle">Subtle</button><button data-v="balanced">Balanced</button><button data-v="hype">Hype</button>
+          </div>
+        </div>
+        <div class="modules" id="modules">
+          <label class="switch"><input type="checkbox" data-m="broll"><i></i><span>Contextual B-roll</span></label>
+          <label class="switch"><input type="checkbox" data-m="sfx"><i></i><span>Sound design</span></label>
+          <label class="switch"><input type="checkbox" data-m="zooms"><i></i><span>Camera moves</span></label>
+          <label class="switch"><input type="checkbox" data-m="transitions"><i></i><span>Transitions</span></label>
+          <label class="switch"><input type="checkbox" data-m="titles"><i></i><span>Animated titles</span></label>
+          <label class="switch"><input type="checkbox" data-m="captions"><i></i><span>Word captions</span></label>
+        </div>
+        <div class="field two">
+          <div><label for="format">Output</label><select id="format"></select></div>
+          <div><label for="captionStyle">Captions</label>
+            <select id="captionStyle"><option value="pop">Pop</option><option value="karaoke">Karaoke</option><option value="minimal">Minimal</option></select></div>
+        </div>
+        <div class="field">
+          <label>Colour grade <span class="hint" id="gradeHint"></span></label>
+          <div class="grades" id="grades"></div>
+          <div class="range"><span>Strength</span><input type="range" id="gradeStrength" min="0" max="1" step="0.05"><output id="gradeStrengthOut"></output></div>
+        </div>
+        <label class="check"><input type="checkbox" id="forceAnalyse"> Re-analyse footage on next Auto-Edit</label>
+        <p class="providers" id="providers"></p>
+      </section>
+    </aside>
+
+    <!-- CENTER: preview -->
+    <section class="col center">
+      <div class="panel glass stage-panel">
+        <div class="stage-head">
+          <div class="seg small" id="viewMode">
+            <button data-v="plan" class="on">Live plan</button><button data-v="source">Source</button><button data-v="render">Render</button>
+          </div>
+          <div class="readout mono" id="readout">--:--:--.-- · F 0</div>
+        </div>
+        <div class="stage-wrap">
+          <div class="stage" id="stage">
+            <div class="cam" id="cam"><video id="video" playsinline preload="auto"></video></div>
+            <div class="broll-layer" id="brollLayer"></div>
+            <div class="flash" id="flash"></div>
+            <div class="title-layer" id="titleLayer"></div>
+            <div class="caption-layer" id="captionLayer"></div>
+            <video id="renderVideo" class="render-video" playsinline controls hidden></video>
+            <div class="hud" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="empty" id="emptyStage">
+              <div class="orb"></div>
+              <p>Upload footage to begin.<br><span>The engine scans every frame, then plans sound, camera, B-roll, grade and captions.</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="transport">
+          <button class="icon" id="btnBack" title="Previous frame (,)">⏮</button>
+          <button class="icon play" id="btnPlay" title="Play / pause (space)">▶</button>
+          <button class="icon" id="btnFwd" title="Next frame (.)">⏭</button>
+          <label class="check small"><input type="checkbox" id="sfxPreview" checked> SFX in preview</label>
+          <div class="spacer"></div>
+          <div class="chips" id="liveChips"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: inspector -->
+    <aside class="col right">
+      <section class="panel glass inspector">
+        <div class="tabs" id="tabs">
+          <button data-t="inspect" class="on">Inspector</button><button data-t="analysis">Analysis</button><button data-t="renders">Renders</button>
+        </div>
+        <div class="tab" id="tab-inspect"><p class="muted">Select anything on the timeline to inspect and tweak it.</p></div>
+        <div class="tab" id="tab-analysis" hidden></div>
+        <div class="tab" id="tab-renders" hidden></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- TIMELINE -->
+  <section class="timeline glass" id="timeline">
+    <div class="tl-toolbar">
+      <h2><span class="dot lime"></span>Timeline</h2>
+      <div class="add">
+        <span class="muted">Add at playhead:</span>
+        <button class="btn tiny" data-add="broll">B-roll</button>
+        <button class="btn tiny" data-add="zoom">Zoom</button>
+        <button class="btn tiny" data-add="title">Title</button>
+        <button class="btn tiny" data-add="sfx">SFX</button>
+      </div>
+      <div class="spacer"></div>
+      <span class="save" id="saveState"></span>
+      <div class="range compact"><span>Zoom</span><input type="range" id="tlZoom" min="20" max="400" value="80"></div>
+    </div>
+    <div class="tl-body">
+      <div class="tl-labels">
+        <div class="lbl ruler-lbl"></div>
+        <div class="lbl">Frame scan</div>
+        <div class="lbl">Video</div>
+        <div class="lbl">B-roll</div>
+        <div class="lbl">Camera</div>
+        <div class="lbl">Titles</div>
+        <div class="lbl">SFX</div>
+        <div class="lbl">Captions</div>
+        <div class="lbl">Audio</div>
+      </div>
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-content" id="tlContent">
+          <div class="track ruler" id="ruler"></div>
+          <div class="track scan"><canvas id="scanCanvas"></canvas></div>
+          <div class="track film" id="film"></div>
+          <div class="track" id="trk-broll"></div>
+          <div class="track" id="trk-camera"></div>
+          <div class="track" id="trk-title"></div>
+          <div class="track" id="trk-sfx"></div>
+          <div class="track words" id="trk-captions"></div>
+          <div class="track wave"><canvas id="waveCanvas"></canvas></div>
+          <div class="playhead" id="playhead"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
