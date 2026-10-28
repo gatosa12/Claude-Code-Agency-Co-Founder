@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Tempo — a minimalist Pomodoro focus timer with tasks.">
+  <meta name="color-scheme" content="light dark">
+  <title>Tempo — Focus Timer</title>
+  <!-- Inline SVG favicon: no external requests -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23E4572E' stroke-width='4'/%3E%3C/svg%3E">
+
+  <!--
+    Tempo — single-file Pomodoro timer + task list.
+
+    • Zero dependencies, zero build step: open this file or drop it on any static host.
+    • All state lives in localStorage under the "tempo:" prefix.
+    • No API keys, tokens or secrets exist anywhere in this file — and none should
+      ever be added. Everything runs locally in the browser.
+  -->
+
+  <style>
+    /* =========================================================
+       ColorTheme — design tokens
+       Every color in the UI comes from these variables.
+       ========================================================= */
+    :root {
+      --bg:          #F6F4F0;
+      --surface:     #FFFFFF;
+      --surface-2:   #EFECE6;
+      --text:        #1E1C1A;
+      --text-muted:  #7D776F;
+      --border:      #E3DFD8;
+      --track:       #E8E4DD;
+
+      --focus:       #E4572E;   /* tomato  */
+      --short:       #2F9C8A;   /* sage    */
+      --long:        #4B67D1;   /* indigo  */
+      --danger:      #C2412D;
+
+      --accent:      var(--focus);   /* swapped per mode via [data-mode] */
+      --on-accent:   #FFFFFF;
+
+      --radius:      14px;
+      --radius-sm:   10px;
+      --shadow:      0 1px 2px rgb(0 0 0 / .04), 0 8px 24px rgb(0 0 0 / .05);
+      --font:        ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono:        ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+
+    /* Dark palette: follows the OS unless the user has explicitly chosen light */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #121212; --surface: #1B1B1B; --surface-2: #242424;
+        --text: #ECE9E4; --text-muted: #8F8A83; --border: #2C2C2C; --track: #2A2A2A;
+        --focus: #F06A43; --short: #3DB7A3; --long: #7088E8; --danger: #E2604B;
+        --on-accent: #121212;
+        --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .25);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #121212; --surface: #1B1B1B; --surface-2: #242424;
+      --text: #ECE9E4; --text-muted: #8F8A83; --border: #2C2C2C; --track: #2A2A2A;
+      --focus: #F06A43; --short: #3DB7A3; --long: #7088E8; --danger: #E2604B;
+      --on-accent: #121212;
+      --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .25);
+    }
+
+    /* Mode → accent color */
+    body[data-mode="focus"] { --accent: var(--focus); }
+    body[data-mode="short"] { --accent: var(--short); }
+    body[data-mode="long"]  { --accent: var(--long); }
+
+    /* =========================================================
+       Base
+       ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 var(--font);
+      transition: background-color .3s ease, color .3s ease;
+    }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    /* =========================================================
+       Layout
+       ========================================================= */
+    .app {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; }
+    .brand-dot { width: 12px; height: 12px; border-radius: 50%; border: 3px solid var(--accent); transition: border-color .3s; }
+    .header-actions { display: flex; gap: 6px; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 32px; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+    @media (max-width: 480px) { .card { padding: 18px; } }
+
+    /* =========================================================
+       Buttons
+       ========================================================= */
+    .icon-btn {
+      display: inline-grid; place-items: center;
+      width: 38px; height: 38px;
+      border: 1px solid transparent; border-radius: var(--radius-sm);
+      background: transparent; color: var(--text-muted);
+      transition: background-color .15s, color .15s;
+    }
+    .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+    .icon-btn svg { width: 18px; height: 18px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      height: 44px; padding: 0 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface); color: var(--text);
+      font-weight: 500;
+      transition: transform .08s, background-color .15s, border-color .15s;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      min-width: 140px;
+      background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+      font-weight: 600; letter-spacing: .02em;
+    }
+    .btn-primary:hover { background: var(--accent); filter: brightness(1.06); }
+    .btn-ghost { border-color: transparent; background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* =========================================================
+       Mode tabs
+       ========================================================= */
+    .modes {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px; padding: 4px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      margin-bottom: 28px;
+    }
+    .mode-btn {
+      min-width: 0; height: 36px; padding: 0 4px; border: 0; border-radius: 9px;
+      background: transparent; color: var(--text-muted);
+      font-size: 14px; font-weight: 500;
+      transition: background-color .2s, color .2s;
+    }
+    .mode-btn:hover { color: var(--text); }
+    .mode-btn[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / .08); }
+
+    /* =========================================================
+       Progress ring
+       ========================================================= */
+    .ring-wrap {
+      position: relative;
+      width: min(300px, 76vw); aspect-ratio: 1;
+      margin: 0 auto 28px;
+    }
+    .ring { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+    .ring-track { fill: none; stroke: var(--track); stroke-width: 8; }
+    .ring-progress {
+      fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round;
+      transition: stroke .3s ease;
+    }
+    /* Smoothly animate the ring when jumping (mode switch / reset) */
+    .ring-progress.animate { transition: stroke .3s ease, stroke-dashoffset .5s cubic-bezier(.4, 0, .2, 1); }
+    .ring-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 0 16%;
+    }
+    .time {
+      font-family: var(--mono);
+      font-size: clamp(44px, 14vw, 64px);
+      font-weight: 500; letter-spacing: -.03em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .ring-label {
+      margin-top: 10px; font-size: 13px; color: var(--text-muted);
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* Gentle breathing pulse while running */
+    .ring-wrap.running .ring-progress { animation: pulse 3s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .75; } }
+
+    .controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* =========================================================
+       Daily session counter
+       ========================================================= */
+    .today {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .today-stats { display: flex; gap: 24px; }
+    .stat-value { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .dots { display: flex; flex-wrap: wrap; gap: 6px; max-width: 220px; justify-content: flex-end; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--track); transition: background-color .3s, transform .3s; }
+    .dot.filled { background: var(--focus); }
+    .dot.pop { animation: pop .5s ease; }
+    @keyframes pop { 40% { transform: scale(1.6); } }
+
+    /* =========================================================
+       Tasks
+       ========================================================= */
+    .tasks-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .tasks-head h2 { margin: 0; font-size: 17px; font-weight: 600; }
+    .tasks-head .hint { font-size: 12px; color: var(--text-muted); }
+
+    .current {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; margin-bottom: 16px;
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      transition: background-color .3s, border-color .3s;
+    }
+    .current-icon { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); }
+    .current-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 600; }
+    .current-text { font-weight: 500; word-break: break-word; }
+    .current.empty .current-text { color: var(--text-muted); font-weight: 400; }
+
+    .add-form { display: flex; gap: 8px; margin-bottom: 12px; }
+    .input {
+      flex: 1; min-width: 0; height: 44px; padding: 0 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); outline: none;
+      transition: border-color .15s, background-color .15s;
+    }
+    .input:focus { border-color: var(--accent); background: var(--surface); }
+
+    .task-list { list-style: none; margin: 0; padding: 0; }
+    .task {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 6px 8px 8px; margin: 0 -6px;
+      border-radius: var(--radius-sm);
+      transition: background-color .15s;
+    }
+    .task:hover { background: var(--surface-2); }
+    .task.is-current { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+    .task.is-current .task-text { font-weight: 500; }
+
+    .check {
+      flex: none; width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--border); background: transparent;
+      display: grid; place-items: center; padding: 0;
+      transition: border-color .15s, background-color .15s;
+    }
+    .check:hover { border-color: var(--accent); }
+    .check svg { width: 12px; height: 12px; opacity: 0; color: var(--on-accent); }
+    .task.done .check { background: var(--accent); border-color: var(--accent); }
+    .task.done .check svg { opacity: 1; }
+
+    .task-text { flex: 1; min-width: 0; word-break: break-word; cursor: text; user-select: none; }
+    .task.done .task-text { color: var(--text-muted); text-decoration: line-through; }
+    .task-edit { height: 34px; padding: 0 10px; }
+
+    .pomos { flex: none; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .task-actions { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
+    .task:hover .task-actions, .task:focus-within .task-actions, .task.is-current .task-actions { opacity: 1; }
+    @media (hover: none) { .task-actions { opacity: 1; } }
+    .task-actions .icon-btn { width: 32px; height: 32px; }
+    .task-actions .icon-btn svg { width: 16px; height: 16px; }
+    .task.is-current .focus-btn { color: var(--accent); }
+    .delete-btn:hover { color: var(--danger); }
+
+    .empty-state { padding: 28px 8px; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .tasks-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
+    .tasks-foot .btn { height: 32px; padding: 0 10px; font-size: 13px; }
+
+    /* =========================================================
+       Settings dialog
+       ========================================================= */
+    dialog {
+      width: min(440px, calc(100vw - 32px));
+      max-height: calc(100dvh - 32px);
+      padding: 0; border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); color: var(--text);
+      box-shadow: 0 24px 64px rgb(0 0 0 / .2);
+    }
+    dialog::backdrop { background: rgb(0 0 0 / .35); backdrop-filter: blur(2px); }
+    dialog[open] { animation: rise .2s ease; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; }
+    .dialog-head h2 { margin: 0; font-size: 17px; }
+    .dialog-body { padding: 8px 20px 4px; }
+    .section-title { margin: 18px 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+    .durations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .field label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    .field .input { width: 100%; height: 40px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .row:last-child { border-bottom: 0; }
+    .row .input { flex: none; width: 76px; height: 36px; text-align: center; }
+    .row input[type="range"] { width: 140px; accent-color: var(--accent); }
+    .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px 20px; }
+
+    /* Toggle switch (styled checkbox) */
+    .switch { position: relative; flex: none; width: 40px; height: 24px; }
+    .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+    .switch span {
+      position: absolute; inset: 0; border-radius: 99px; background: var(--track);
+      transition: background-color .2s; pointer-events: none;
+    }
+    .switch span::after {
+      content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .2); transition: transform .2s;
+    }
+    .switch input:checked + span { background: var(--accent); }
+    .switch input:checked + span::after { transform: translateX(16px); }
+    .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+      padding: 10px 16px; border-radius: 10px;
+      background: var(--text); color: var(--bg); font-size: 14px;
+      opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+      max-width: calc(100vw - 32px);
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .shortcuts { margin-top: 20px; text-align: center; font-size: 12px; color: var(--text-muted); }
+    kbd {
+      font-family: var(--mono); font-size: 11px; padding: 1px 6px;
+      border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; background: var(--surface);
+    }
+    @media (hover: none) { .shortcuts { display: none; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body data-mode="focus">
+  <div class="app">
+    <header>
+      <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span id="appName">Tempo</span></div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path id="themeIcon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+            <circle cx="9" cy="6" r="2" fill="var(--surface)"/><circle cx="15" cy="12" r="2" fill="var(--surface)"/><circle cx="7" cy="18" r="2" fill="var(--surface)"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- ===================== Timer ===================== -->
+      <section class="card" aria-label="Timer">
+        <div class="modes" role="tablist" aria-label="Timer mode">
+          <button class="mode-btn" role="tab" data-mode="focus" type="button">Focus</button>
+          <button class="mode-btn" role="tab" data-mode="short" type="button">Short Break</button>
+          <button class="mode-btn" role="tab" data-mode="long"  type="button">Long Break</button>
+        </div>
+
+        <div class="ring-wrap" id="ringWrap">
+          <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-track" cx="60" cy="60" r="54"/>
+            <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="54"/>
+          </svg>
+          <div class="ring-center">
+            <div class="time" id="time" role="timer" aria-live="off">25:00</div>
+            <div class="ring-label" id="ringLabel">Time to focus</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="icon-btn" id="resetBtn" type="button" aria-label="Reset timer" title="Reset (R)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/>
+            </svg>
+          </button>
+          <button class="btn btn-primary" id="startBtn" type="button">START</button>
+          <button class="icon-btn" id="skipBtn" type="button" aria-label="Skip to next session" title="Skip (N)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Daily session counter -->
+        <div class="today" aria-label="Today's progress">
+          <div class="today-stats">
+            <div><div class="stat-value" id="sessionCount">0</div><div class="stat-label">Sessions today</div></div>
+            <div><div class="stat-value" id="focusMinutes">0m</div><div class="stat-label">Focused</div></div>
+          </div>
+          <div class="dots" id="dots" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <!-- ===================== Tasks ===================== -->
+      <section class="card" aria-label="Tasks">
+        <div class="tasks-head">
+          <h2>Tasks</h2>
+          <span class="hint">Double-click to edit</span>
+        </div>
+
+        <!-- Current Focus indicator -->
+        <div class="current empty" id="current">
+          <span class="current-icon" aria-hidden="true"></span>
+          <div>
+            <div class="current-label">Current Focus</div>
+            <div class="current-text" id="currentText">Pick a task to focus on</div>
+          </div>
+        </div>
+
+        <form class="add-form" id="addForm" autocomplete="off">
+          <label for="newTask" class="sr-only">New task</label>
+          <input class="input" id="newTask" maxlength="200" placeholder="What are you working on?">
+          <button class="btn" type="submit">Add</button>
+        </form>
+
+        <ul class="task-list" id="taskList"></ul>
+        <div class="empty-state" id="emptyState">No tasks yet. Add one above.</div>
+
+        <div class="tasks-foot" id="tasksFoot" hidden>
+          <span id="taskSummary"></span>
+          <button class="btn btn-ghost" id="clearDoneBtn" type="button">Clear completed</button>
+        </div>
+      </section>
+    </main>
+
+    <p class="shortcuts">
+      <kbd>Space</kbd> start / pause &nbsp;·&nbsp; <kbd>R</kbd> reset &nbsp;·&nbsp; <kbd>N</kbd> skip &nbsp;·&nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> modes &nbsp;·&nbsp; <kbd>T</kbd> theme
+    </p>
+  </div>
+
+  <!-- ===================== Settings ===================== -->
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+    <form method="dialog" id="settingsForm">
+      <div class="dialog-head">
+        <h2 id="settingsTitle">Settings</h2>
+        <button class="icon-btn" value="cancel" type="submit" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="section-title">Durations (minutes)</div>
+        <div class="durations">
+          <div class="field"><label for="setFocus">Focus</label><input class="input" id="setFocus" type="number" min="1" max="180" required></div>
+          <div class="field"><label for="setShort">Short</label><input class="input" id="setShort" type="number" min="1" max="60" required></div>
+          <div class="field"><label for="setLong">Long</label><input class="input" id="setLong" type="number" min="1" max="120" required></div>
+        </div>
+
+        <div class="section-title">Flow</div>
+        <div class="row"><label for="setInterval">Long break every … sessions</label><input class="input" id="setInterval" type="number" min="1" max="12" required></div>
+        <div class="row"><label for="setGoal">Daily session goal</label><input class="input" id="setGoal" type="number" min="1" max="24" required></div>
+        <div class="row"><label for="setAutoBreak">Auto-start breaks</label><span class="switch"><input type="checkbox" id="setAutoBreak"><span></span></span></div>
+        <div class="row"><label for="setAutoFocus">Auto-start focus after breaks</label><span class="switch"><input type="checkbox" id="setAutoFocus"><span></span></span></div>
+
+        <div class="section-title">Alerts</div>
+        <div class="row"><label for="setSound">Sound</label><span class="switch"><input type="checkbox" id="setSound"><span></span></span></div>
+        <div class="row">
+          <label for="setVolume">Volume</label>
+          <span style="display:flex;align-items:center;gap:8px">
+            <input type="range" id="setVolume" min="0" max="100" step="5">
+            <button class="icon-btn" id="testSoundBtn" type="button" aria-label="Test sound" title="Test sound">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+            </button>
+          </span>
+        </div>
+        <div class="row"><label for="setNotify">Desktop notifications</label><span class="switch"><input type="checkbox" id="setNotify"><span></span></span></div>
+      </div>
+
+      <div class="dialog-foot">
+        <button class="btn btn-ghost" value="cancel" type="submit">Cancel</button>
+        <button class="btn btn-primary" value="save" type="submit" id="saveSettingsBtn" style="min-width:0">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    /* =========================================================
+       Config
+       ========================================================= */
+    const APP_NAME = 'Tempo';           // Rename the app here
+    const STORAGE_PREFIX = 'tempo:';
+    const MODES = {
+      focus: { label: 'Focus',       message: 'Time to focus' },
+      short: { label: 'Short Break', message: 'Take a short break' },
+      long:  { label: 'Long Break',  message: 'Enjoy a long break' },
+    };
+    const DEFAULT_SETTINGS = {
+      focus: 25, short: 5, long: 15,   // minutes
+      longInterval: 4,                 // focus sessions before a long break
+      dailyGoal: 8,
+      autoStartBreaks: true,
+      autoStartFocus: false,
+      sound: true,
+      volume: 60,                      // 0–100
+      notifications: false,
+    };
+
+    /* =========================================================
+       Storage — every access is guarded: storage can be full,
+       disabled, or throw in private windows. The app still works
+       (just without persistence) if it does.
+       ========================================================= */
+    const store = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(STORAGE_PREFIX + key);
+          return raw == null ? fallback : JSON.parse(raw);
+        } catch { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)); } catch { /* ignore */ }
+      },
+    };
+
+    /* =========================================================
+       Helpers
+       ========================================================= */
+    const $ = (sel) => document.querySelector(sel);
+    const todayKey = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const clampInt = (v, min, max, fallback) => {
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+    };
+    const fmt = (ms) => {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      const m = Math.floor(total / 60), s = total % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+
+    let toastTimer;
+    function toast(msg) {
+      const el = $('#toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+    }
+
+    /* =========================================================
+       State (loaded from localStorage)
+       ========================================================= */
+    const settings = { ...DEFAULT_SETTINGS, ...store.get('settings', {}) };
+    let tasks = store.get('tasks', []);
+    let currentTaskId = store.get('currentTask', null);
+    let stats = store.get('stats', { date: todayKey(), sessions: 0, focusMinutes: 0 });
+
+    /*
+      Timer state. While running we store an absolute end timestamp rather
+      than counting ticks — this stays accurate when the tab is throttled in
+      the background, and lets a reload resume exactly where it left off.
+    */
+    let timer = store.get('timer', null) || {};
+    timer = {
+      mode: MODES[timer.mode] ? timer.mode : 'focus',
+      remaining: typeof timer.remaining === 'number' ? timer.remaining : null,
+      endAt: typeof timer.endAt === 'number' ? timer.endAt : null,
+      cycle: typeof timer.cycle === 'number' ? timer.cycle : 0, // focus sessions since last long break
+    };
+
+    const durationMs = (mode) => settings[mode] * 60 * 1000;
+    const isRunning = () => timer.endAt !== null;
+    const remainingMs = () => (isRunning() ? timer.endAt - Date.now() : timer.remaining);
+    const saveTimer = () => store.set('timer', timer);
+    const saveTasks = () => { store.set('tasks', tasks); store.set('currentTask', currentTaskId); };
+
+    if (timer.remaining === null || timer.remaining > durationMs(timer.mode)) {
+      timer.remaining = durationMs(timer.mode);
+    }
+
+    /* Reset the daily counter when the date changes */
+    function rolloverStats() {
+      const key = todayKey();
+      if (stats.date !== key) {
+        stats = { date: key, sessions: 0, focusMinutes: 0 };
+        store.set('stats', stats);
+        renderStats();
+      }
+    }
+
+    /* =========================================================
+       Theme
+       ========================================================= */
+    const MOON = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
+    const SUN  = 'M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function effectiveTheme() {
+      const saved = store.get('theme', null);
+      return saved || (systemDark.matches ? 'dark' : 'light');
+    }
+    function applyTheme() {
+      const theme = effectiveTheme();
+      document.documentElement.dataset.theme = theme;
+      $('#themeIcon').setAttribute('d', theme === 'dark' ? SUN : MOON);
+      $('#themeBtn').setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    function toggleTheme() {
+      store.set('theme', effectiveTheme() === 'dark' ? 'light' : 'dark');
+      applyTheme();
+    }
+    systemDark.addEventListener?.('change', () => { if (!store.get('theme', null)) applyTheme(); });
+
+    /* =========================================================
+       Sound — synthesized with the Web Audio API (no audio files)
+       ========================================================= */
+    let audioCtx = null;
+    function getAudio() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+    /** Soft three-note chime; rising for "back to work", falling for "break". */
+    function playChime(nextMode) {
+      if (!settings.sound) return;
+      const ctx = getAudio();
+      if (!ctx) return;
+      const vol = (settings.volume / 100) * 0.35;
+      const notes = nextMode === 'focus' ? [523.25, 659.25, 783.99] : [783.99, 659.25, 523.25];
+      const t0 = ctx.currentTime + 0.02;
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = t0 + i * 0.22;
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(Math.max(vol, 0.0002), start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.9);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 1);
+      });
+    }
+
+    /* =========================================================
+       Notifications
+       ========================================================= */
+    const canNotify = () => 'Notification' in window;
+    async function requestNotifyPermission() {
+      if (!canNotify()) { toast('Notifications are not supported in this browser'); return false; }
+      if (Notification.permission === 'granted') return true;
+      if (Notification.permission === 'denied') { toast('Notifications are blocked in browser settings'); return false; }
+      const result = await Notification.requestPermission();
+      return result === 'granted';
+    }
+    function notify(title, body) {
+      if (!settings.notifications || !canNotify() || Notification.permission !== 'granted') return;
+      try {
+        const n = new Notification(title, { body, tag: 'tempo-session', silent: true });
+        n.onclick = () => { window.focus(); n.close(); };
+      } catch { /* some mobile browsers only allow notifications via a service worker */ }
+    }
+
+    /* =========================================================
+       Timer engine
+       ========================================================= */
+    let rafId = null;
+    let lastShownSecond = null;
+
+    function start() {
+      if (isRunning()) return;
+      getAudio(); // unlock audio during the user gesture so the end chime can play
+      if (timer.remaining <= 0) timer.remaining = durationMs(timer.mode);
+      timer.endAt = Date.now() + timer.remaining;
+      saveTimer();
+      loop();
+      renderControls();
+    }
+
+    function pause() {
+      if (!isRunning()) return;
+      timer.remaining = Math.max(0, timer.endAt - Date.now());
+      timer.endAt = null;
+      saveTimer();
+      cancelAnimationFrame(rafId);
+      renderControls();
+      renderTime();
+    }
+
+    function toggle() { isRunning() ? pause() : start(); }
+
+    function reset() {
+      timer.endAt = null;
+      timer.remaining = durationMs(timer.mode);
+      saveTimer();
+      cancelAnimationFrame(rafId);
+      renderAll(true);
+    }
+
+    /** Switch mode. Stops the timer unless `autoStart` is set. */
+    function setMode(mode, { autoStart = false } = {}) {
+      cancelAnimationFrame(rafId);
+      timer.mode = mode;
+      timer.endAt = null;
+      timer.remaining = durationMs(mode);
+      saveTimer();
+      renderAll(true);
+      if (autoStart) start();
+    }
+
+    /** Which mode follows the current one. */
+    function nextMode() {
+      if (timer.mode !== 'focus') return 'focus';
+      return timer.cycle >= settings.longInterval ? 'long' : 'short';
+    }
+
+    /**
+     * Called when a session reaches zero (or is skipped).
+     * @param {boolean} natural  true if the timer actually ran out
+     */
+    function complete(natural) {
+      const finished = timer.mode;
+      if (finished === 'focus') {
+        timer.cycle += 1;
+        if (natural) recordFocusSession();
+      }
+      const next = nextMode();
+      if (next === 'long') timer.cycle = 0;
+
+      if (natural) {
+        playChime(next);
+        const task = tasks.find((t) => t.id === currentTaskId);
+        if (finished === 'focus') {
+          notify('Focus session complete', `${task ? `“${task.text}” — ` : ''}time for a ${MODES[next].label.toLowerCase()}.`);
+          toast(`Nice work! ${MODES[next].label} next.`);
+        } else {
+          notify('Break is over', task ? `Back to: ${task.text}` : 'Ready for another focus session?');
+          toast('Break over — ready to focus?');
+        }
+      }
+
+      const auto = next === 'focus' ? settings.autoStartFocus : settings.autoStartBreaks;
+      setMode(next, { autoStart: natural && auto });
+    }
+
+    function recordFocusSession() {
+      rolloverStats();
+      stats.sessions += 1;
+      stats.focusMinutes += settings.focus;
+      store.set('stats', stats);
+
+      // Credit the pomodoro to the task currently in focus
+      const task = tasks.find((t) => t.id === currentTaskId);
+      if (task) { task.pomos = (task.pomos || 0) + 1; saveTasks(); renderTasks(); }
+
+      renderStats(true);
+    }
+
+    /** Animation loop: updates the ring every frame, the digits once per second. */
+    function loop() {
+      cancelAnimationFrame(rafId);
+      const frame = () => {
+        if (!isRunning()) return;
+        if (remainingMs() <= 0) { complete(true); return; }
+        renderRing();
+        renderTime();
+        rafId = requestAnimationFrame(frame);
+      };
+      rafId = requestAnimationFrame(frame);
+    }
+
+    /*
+      requestAnimationFrame pauses in background tabs, so a light interval
+      makes sure the session still completes (and alerts) on time.
+    */
+    setInterval(() => {
+      rolloverStats();
+      if (isRunning() && remainingMs() <= 0) complete(true);
+      else if (isRunning() && document.hidden) renderTime();
+    }, 1000);
+
+    /* =========================================================
+       Rendering — timer
+       ========================================================= */
+    const ring = $('#ringProgress');
+    const CIRC = 2 * Math.PI * 54;
+    ring.style.strokeDasharray = CIRC.toFixed(2);
+
+    function renderRing(animate = false) {
+      const total = durationMs(timer.mode);
+      const elapsedRatio = Math.min(1, Math.max(0, 1 - remainingMs() / total));
+      ring.classList.toggle('animate', animate);
+      ring.style.strokeDashoffset = (CIRC * (1 - elapsedRatio)).toFixed(2);
+      // A round line-cap still paints a dot at 0% — hide the arc until there is progress
+      ring.style.opacity = elapsedRatio > 0.001 ? '1' : '0';
+    }
+
+    function renderTime() {
+      const text = fmt(remainingMs());
+      if (text === lastShownSecond) return;
+      lastShownSecond = text;
+      $('#time').textContent = text;
+      document.title = isRunning() || timer.remaining < durationMs(timer.mode)
+        ? `${text} · ${MODES[timer.mode].label} — ${APP_NAME}`
+        : `${APP_NAME} — Focus Timer`;
+    }
+
+    function renderControls() {
+      const running = isRunning();
+      $('#startBtn').textContent = running ? 'PAUSE' : (timer.remaining < durationMs(timer.mode) ? 'RESUME' : 'START');
+      $('#ringWrap').classList.toggle('running', running);
+    }
+
+    function renderMode() {
+      document.body.dataset.mode = timer.mode;
+      document.querySelectorAll('.mode-btn').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === timer.mode)));
+      const task = tasks.find((t) => t.id === currentTaskId && !t.done);
+      $('#ringLabel').textContent = timer.mode === 'focus' && task ? task.text : MODES[timer.mode].message;
+    }
+
+    /* =========================================================
+       Rendering — daily counter
+       ========================================================= */
+    function renderStats(pop = false) {
+      $('#sessionCount').textContent = stats.sessions;
+      const h = Math.floor(stats.focusMinutes / 60), m = stats.focusMinutes % 60;
+      $('#focusMinutes').textContent = h ? `${h}h ${m}m` : `${m}m`;
+
+      const dots = $('#dots');
+      const count = Math.max(settings.dailyGoal, stats.sessions);
+      dots.replaceChildren();
+      for (let i = 0; i < count; i++) {
+        const d = document.createElement('span');
+        d.className = 'dot' + (i < stats.sessions ? ' filled' : '');
+        if (pop && i === stats.sessions - 1) d.classList.add('pop');
+        dots.appendChild(d);
+      }
+      dots.parentElement.title = `${stats.sessions} of ${settings.dailyGoal} sessions today`;
+    }
+
+    /* =========================================================
+       Rendering — tasks
+       ========================================================= */
+    const ICONS = {
+      check:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>',
+      edit:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+      trash:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>',
+    };
+
+    /** Small factory for icon buttons (icons are static markup; user text never touches innerHTML). */
+    function iconButton(cls, icon, label, onClick) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `icon-btn ${cls}`;
+      b.innerHTML = ICONS[icon];
+      b.setAttribute('aria-label', label);
+      b.title = label;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    function renderTasks() {
+      const list = $('#taskList');
+      list.replaceChildren();
+
+      tasks.forEach((task) => {
+        const li = document.createElement('li');
+        li.className = 'task' + (task.done ? ' done' : '') + (task.id === currentTaskId ? ' is-current' : '');
+        li.dataset.id = task.id;
+
+        const check = document.createElement('button');
+        check.type = 'button';
+        check.className = 'check';
+        check.innerHTML = ICONS.check;
+        check.setAttribute('aria-label', task.done ? `Mark "${task.text}" as not done` : `Mark "${task.text}" as done`);
+        check.addEventListener('click', () => toggleDone(task.id));
+
+        const text = document.createElement('span');
+        text.className = 'task-text';
+        text.textContent = task.text;
+        text.title = 'Double-click to edit';
+        text.addEventListener('dblclick', () => beginEdit(li, task));
+
+        const pomos = document.createElement('span');
+        pomos.className = 'pomos';
+        pomos.textContent = task.pomos ? `${task.pomos} ●` : '';
+        pomos.title = `${task.pomos || 0} focus session${task.pomos === 1 ? '' : 's'}`;
+
+        const actions = document.createElement('div');
+        actions.className = 'task-actions';
+        if (!task.done) {
+          actions.append(iconButton('focus-btn', 'target',
+            task.id === currentTaskId ? 'Remove from focus' : 'Set as current focus',
+            () => setCurrent(task.id === currentTaskId ? null : task.id)));
+        }
+        actions.append(
+          iconButton('', 'edit', 'Edit task', () => beginEdit(li, task)),
+          iconButton('delete-btn', 'trash', 'Delete task', () => deleteTask(task.id)),
+        );
+
+        li.append(check, text, pomos, actions);
+        list.appendChild(li);
+      });
+
+      // Empty state + footer summary
+      $('#emptyState').hidden = tasks.length > 0;
+      const done = tasks.filter((t) => t.done).length;
+      $('#tasksFoot').hidden = tasks.length === 0;
+      $('#taskSummary').textContent = `${done} of ${tasks.length} done`;
+      $('#clearDoneBtn').hidden = done === 0;
+
+      renderCurrent();
+    }
+
+    function renderCurrent() {
+      const task = tasks.find((t) => t.id === currentTaskId);
+      $('#current').classList.toggle('empty', !task);
+      $('#currentText').textContent = task ? task.text : 'Pick a task to focus on';
+      renderMode(); // ring label shows the current task during focus
+    }
+
+    /* =========================================================
+       Task actions
+       ========================================================= */
+    function addTask(text) {
+      text = text.trim();
+      if (!text) return;
+      const task = { id: uid(), text, done: false, pomos: 0, createdAt: Date.now() };
+      tasks.push(task);
+      if (!currentTaskId) currentTaskId = task.id; // first open task becomes the focus
+      saveTasks();
+      renderTasks();
+    }
+
+    function toggleDone(id) {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return;
+      task.done = !task.done;
+      // Completing the current task hands focus to the next open one
+      if (task.done && currentTaskId === id) {
+        currentTaskId = tasks.find((t) => !t.done)?.id ?? null;
+      }
+      saveTasks();
+      renderTasks();
+    }
+
+    function setCurrent(id) {
+      currentTaskId = id;
+      saveTasks();
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter((t) => t.id !== id);
+      if (currentTaskId === id) currentTaskId = tasks.find((t) => !t.done)?.id ?? null;
+      saveTasks();
+      renderTasks();
+    }
+
+    function clearCompleted() {
+      const n = tasks.filter((t) => t.done).length;
+      tasks = tasks.filter((t) => !t.done);
+      saveTasks();
+      renderTasks();
+      toast(`Cleared ${n} completed task${n === 1 ? '' : 's'}`);
+    }
+
+    /** Inline edit: Enter / blur saves, Escape cancels, empty text deletes. */
+    function beginEdit(li, task) {
+      const textEl = li.querySelector('.task-text');
+      if (!textEl) return;
+      const input = document.createElement('input');
+      input.className = 'input task-edit';
+      input.value = task.text;
+      input.maxLength = 200;
+      input.setAttribute('aria-label', 'Edit task');
+      textEl.replaceWith(input);
+      input.focus();
+      input.select();
+
+      let finished = false;
+      const finish = (save) => {
+        if (finished) return;
+        finished = true;
+        const value = input.value.trim();
+        if (save && value && value !== task.text) { task.text = value; saveTasks(); }
+        else if (save && !value) { deleteTask(task.id); return; }
+        renderTasks();
+      };
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+        else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+      });
+      input.addEventListener('blur', () => finish(true));
+    }
+
+    /* =========================================================
+       Settings dialog
+       ========================================================= */
+    const dialog = $('#settingsDialog');
+    const fields = {
+      focus: $('#setFocus'), short: $('#setShort'), long: $('#setLong'),
+      longInterval: $('#setInterval'), dailyGoal: $('#setGoal'),
+      autoStartBreaks: $('#setAutoBreak'), autoStartFocus: $('#setAutoFocus'),
+      sound: $('#setSound'), volume: $('#setVolume'), notifications: $('#setNotify'),
+    };
+
+    function openSettings() {
+      for (const [key, el] of Object.entries(fields)) {
+        if (el.type === 'checkbox') el.checked = !!settings[key];
+        else el.value = settings[key];
+      }
+      if (settings.notifications && canNotify() && Notification.permission !== 'granted') fields.notifications.checked = false;
+      dialog.showModal();
+    }
+
+    // Ask for notification permission the moment the toggle is switched on (needs a user gesture)
+    fields.notifications.addEventListener('change', async (e) => {
+      if (e.target.checked) e.target.checked = await requestNotifyPermission();
+    });
+
+    $('#testSoundBtn').addEventListener('click', () => {
+      const prev = { sound: settings.sound, volume: settings.volume };
+      settings.sound = true;
+      settings.volume = parseInt(fields.volume.value, 10);
+      playChime('focus');
+      Object.assign(settings, prev);
+    });
+
+    dialog.addEventListener('close', () => {
+      if (dialog.returnValue !== 'save') return;
+      const oldDuration = durationMs(timer.mode);
+
+      settings.focus = clampInt(fields.focus.value, 1, 180, DEFAULT_SETTINGS.focus);
+      settings.short = clampInt(fields.short.value, 1, 60, DEFAULT_SETTINGS.short);
+      settings.long = clampInt(fields.long.value, 1, 120, DEFAULT_SETTINGS.long);
+      settings.longInterval = clampInt(fields.longInterval.value, 1, 12, DEFAULT_SETTINGS.longInterval);
+      settings.dailyGoal = clampInt(fields.dailyGoal.value, 1, 24, DEFAULT_SETTINGS.dailyGoal);
+      settings.autoStartBreaks = fields.autoStartBreaks.checked;
+      settings.autoStartFocus = fields.autoStartFocus.checked;
+      settings.sound = fields.sound.checked;
+      settings.volume = clampInt(fields.volume.value, 0, 100, DEFAULT_SETTINGS.volume);
+      settings.notifications = fields.notifications.checked;
+      store.set('settings', settings);
+
+      // Apply a new duration to an idle (untouched) timer straight away;
+      // a running or paused session keeps its remaining time, capped to the new length.
+      const newDuration = durationMs(timer.mode);
+      if (!isRunning()) {
+        timer.remaining = timer.remaining >= oldDuration ? newDuration : Math.min(timer.remaining, newDuration);
+      } else if (timer.endAt - Date.now() > newDuration) {
+        timer.endAt = Date.now() + newDuration;
+      }
+      saveTimer();
+      renderAll(true);
+      toast('Settings saved');
+    });
+
+    /* =========================================================
+       Wiring
+       ========================================================= */
+    $('#startBtn').addEventListener('click', toggle);
+    $('#resetBtn').addEventListener('click', reset);
+    $('#skipBtn').addEventListener('click', () => complete(false));
+    $('#themeBtn').addEventListener('click', toggleTheme);
+    $('#settingsBtn').addEventListener('click', openSettings);
+    $('#clearDoneBtn').addEventListener('click', clearCompleted);
+
+    document.querySelectorAll('.mode-btn').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        if (btn.dataset.mode === timer.mode) return;
+        if (isRunning() && !confirm('A session is in progress. Switch modes and reset it?')) return;
+        setMode(btn.dataset.mode);
+      }));
+
+    $('#addForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = $('#newTask');
+      addTask(input.value);
+      input.value = '';
+      input.focus();
+    });
+
+    // Keyboard shortcuts (ignored while typing or when the dialog is open)
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || dialog.open) return;
+      if (e.target.closest('input, textarea, [contenteditable="true"]')) return;
+      const keys = {
+        ' ': toggle, r: reset, n: () => complete(false), t: toggleTheme,
+        1: () => setMode('focus'), 2: () => setMode('short'), 3: () => setMode('long'),
+      };
+      const fn = keys[e.key.toLowerCase()];
+      if (!fn) return;
+      // Let Space activate a focused button normally (e.g. a task checkbox)
+      if (e.key === ' ' && e.target.closest('button')) return;
+      e.preventDefault();
+      fn();
+    });
+
+    // Keep tabs in sync if the app is open in more than one window
+    window.addEventListener('storage', (e) => {
+      if (!e.key || !e.key.startsWith(STORAGE_PREFIX)) return;
+      tasks = store.get('tasks', []);
+      currentTaskId = store.get('currentTask', null);
+      stats = store.get('stats', stats);
+      Object.assign(settings, store.get('settings', {}));
+      const t = store.get('timer', null);
+      if (t) Object.assign(timer, t);
+      renderAll(true);
+      if (isRunning()) loop(); else cancelAnimationFrame(rafId);
+    });
+
+    function renderAll(animateRing = false) {
+      lastShownSecond = null;
+      renderMode();
+      renderRing(animateRing);
+      renderTime();
+      renderControls();
+      renderStats();
+      renderTasks();
+    }
+
+    /* =========================================================
+       Boot
+       ========================================================= */
+    document.getElementById('appName').textContent = APP_NAME;
+    applyTheme();
+    rolloverStats();
+    renderAll();
+
+    // Resume a session that was running before reload (or finished while closed)
+    if (isRunning()) {
+      if (remainingMs() <= 0) complete(true);
+      else loop();
+    }
+  })();
+  </script>
+</body>
+</html>
