@@ -56,7 +56,7 @@ Templates for building and delivering voice AI solutions:
 - `templates/voice-agents/` -- System design documents for inbound receptionist, speed-to-lead, and database reactivation
 - `templates/systems/` -- n8n architecture guides for pre-call and post-call automations
 - `templates/lead-gen/` -- Lead generation strategy guide
-- `templates/marketing/` -- Video ad production kits (software installation / setup guide ads)
+- `templates/marketing/` -- Video ad production kits (software installation / setup guide ads) and a keyword-to-short-video pipeline (MoneyPrinterTurbo)
 
 Run `/agency-ops:voice-agent`, `/agency-ops:system-build`, or `/agency-ops:lead-gen` to use these templates interactively.
 
@@ -125,4 +125,5 @@ Claude-Code-Agency-Co-Founder/
       google-maps-scraping.md
     marketing/                    # Video ad production kits
       software-installation-ad.md
+      keyword-to-short-video.md
 ```
