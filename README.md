@@ -61,6 +61,7 @@ Built by [Amplify Voice AI](https://skool.com/amplify-voice-ai) for the communit
 | `/agency-ops:prompt-trim` | Trim voice agent prompts with 3 optimization tiers |
 | `/agency-ops:system-build` | Guide n8n system template selection |
 | `/agency-ops:lead-gen` | Guide lead gen pipeline setup |
+| `/agency-ops:copywriting` | Write ads and copy with 6 persuasion techniques |
 | `/agency-ops:setup-dashboard` | Connect dashboard to Supabase |
 
 ## How It Works
