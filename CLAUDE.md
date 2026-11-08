@@ -36,6 +36,7 @@ This project helps voice AI agency operators acquire their next client and deliv
 | `/agency-ops:prompt-trim` | Trim voice agent prompts with 3 tiers (conservative/moderate/aggressive) | When a prompt exceeds token targets, or to optimize an existing prompt |
 | `/agency-ops:system-build` | Guide n8n system architecture selection and customization | When building automations for a client |
 | `/agency-ops:lead-gen` | Guide lead generation strategy selection for your niche | When setting up prospecting |
+| `/agency-ops:copywriting` | Write ads and copy with PAS, AIDA, FOMO, Social Proof, Emotional Appeal, Storytelling | Writing ads, hooks, landing pages, emails or video scripts |
 | `/agency-ops:setup-dashboard` | Connect dashboard to Supabase | When setting up live data visualization |
 
 ## Act / Ask / Absorb
@@ -89,6 +90,7 @@ Claude-Code-Agency-Co-Founder/
       prompt-trim/
       system-build/
       lead-gen/
+      copywriting/                 # Ad & copywriting persuasion techniques
       setup-dashboard/
     commands/gsd/                   # GSD framework commands
   context/
